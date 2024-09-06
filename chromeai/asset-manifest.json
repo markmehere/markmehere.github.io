@@ -1,0 +1,13 @@
+{
+  "files": {
+    "main.css": "/chromeai/static/css/main.6aba9217.css",
+    "main.js": "/chromeai/static/js/main.456310bb.js",
+    "index.html": "/chromeai/index.html",
+    "main.6aba9217.css.map": "/chromeai/static/css/main.6aba9217.css.map",
+    "main.456310bb.js.map": "/chromeai/static/js/main.456310bb.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.6aba9217.css",
+    "static/js/main.456310bb.js"
+  ]
+}
