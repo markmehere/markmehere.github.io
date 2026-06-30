@@ -1,14 +1,175 @@
 <!DOCTYPE html>
-<html lang="enb">
-  <head>
+<html lang="en">
+<head>
     <meta charset="UTF-8">
-    <meta http-equiv content="url=https://markmehere.github.io/chromeai">
-    <script type="text/javascript">
-      setTimeout(function() {
-        window.location.href = "https://markmehere.github.io/chromeai";
-      });
-    </script>
-  </head>
-  <body>
-  </body>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nonsense, Austen - Browser-Based LLM Demonstration</title>
+    <style>
+        /* Reset and Base Styles */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            line-height: 1.6;
+            color: #2c3e50;
+            background-color: #1482ba; /* Outer dark blue bands */
+        }
+
+        /* 3-Column Layout: Band / Content / Band */
+        .page-wrapper {
+            display: grid;
+            grid-template-columns: 1fr minmax(auto, 1060px) 1fr;
+            min-height: 100vh;
+        }
+
+        /* Main Content Column */
+        .content-container {
+            grid-column: 2;
+            background-color: #8fcff0; /* Inner light blue band */
+            padding: 40px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            box-shadow: 0 0 20px rgba(0,0,0,0.15);
+        }
+
+        /* Interactive Showcase Heading */
+        .project-header {
+            width: 100%;
+            max-width: 1000px;
+            margin-bottom: 24px;
+            text-align: left;
+        }
+
+        .project-header h1 {
+            font-size: 2.2rem;
+            color: #0f547a;
+            margin-bottom: 8px;
+        }
+
+        .project-header .subtitle {
+            font-size: 1.1rem;
+            color: #1b638b;
+            font-weight: 500;
+        }
+
+        /* Iframe Styling */
+        .iframe-wrapper {
+            width: 1000px;
+            height: 720px;
+            background: #ffffff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            margin-bottom: 40px;
+            border: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        /* Formatted Article Content */
+        .article-body {
+            width: 100%;
+            max-width: 800px; /* Optimal reading width for text */
+            background: #ffffff;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        .article-body p {
+            margin-bottom: 20px;
+            font-size: 1.05rem;
+        }
+
+        .article-body h4 {
+            font-size: 1.3rem;
+            color: #0f547a;
+            margin-top: 30px;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #8fcff0;
+            padding-bottom: 5px;
+        }
+
+        .article-body ul {
+            margin-left: 20px;
+            margin-bottom: 20px;
+        }
+
+        .article-body li {
+            margin-bottom: 12px;
+            font-size: 1rem;
+        }
+
+        /* Clean Link Styling */
+        .article-body a {
+            color: #1482ba;
+            text-decoration: none;
+            font-weight: 600;
+            border-bottom: 1px solid transparent;
+            transition: border-color 0.2s ease, color 0.2s ease;
+        }
+
+        .article-body a:hover {
+            color: #0f547a;
+            border-bottom-color: #0f547a;
+        }
+
+        /* Responsive Fallback for smaller viewing windows */
+        @media (max-width: 1080px) {
+            .page-wrapper {
+                grid-template-columns: 0px 1fr 0px;
+            }
+            .content-container {
+                padding: 20px;
+            }
+            .iframe-wrapper {
+                width: 100%;
+                height: 56.25vw; /* Scale proportionally on small screens */
+                min-height: 450px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="page-wrapper">
+        <main class="content-container">
+
+            <header class="project-header">
+                <h1>Nonsense, Austen</h1>
+                <div class="subtitle">In-Browser LLM Text Generation & WebGPU/WASM Example</div>
+            </header>
+
+            <div class="iframe-wrapper">
+                <iframe src="austen/index.html" title="Nonsense Austen Game Instance"></iframe>
+            </div>
+
+            <article class="article-body">
+            <p>ChatGPT and large language models are often viewed as mysterious, monolithic systems running on water-hungry data centers. However, <a href="https://github.com/openai/gpt-2">ChatGPT 2 was open source</a> and Andrej Karpathy's <a href="https://github.com/karpathy/nanoGPT">nanoGPT</a> showed that the core mechanics of a generative transformer can be written in just a few hundred lines of Python (<a href="https://github.com/markmehere/nonsense-austen/blob/main/model.py">train</a>, <a href="https://github.com/markmehere/nonsense-austen/blob/main/model.py">model</a>, and <a href="https://github.com/markmehere/nonsense-austen/blob/main/sample.py">infer</a>).</p>
+
+            <p>This project takes that architecture a step further by bringing implementing inference entirely within a single WASM web app. Where possible, it generates Austen-like prose <strong>locally and entirely within your web browser</strong>. No server, no external API calls, and no internet connection required once the page loads.</p>
+
+            <p>By compiling the model weights and orchestration layer to run client-side, this page can run a dedicated inference cycle on everyday hardware. On a 2019 MacBook Pro (i5 with integrated graphics), it generates 500 characters of somewhat coherent, Jane Austen-styled prose in under 30 seconds. Provided your browser is up to date and you are using a laptop or desktop computer (not a mobile), your computer handles the entire autoregressive inference itself.</p>
+
+            <h4>Engineering & Architecture Notes</h4>
+            <ul>
+                <li><strong>Make your own:</strong> Developers can <a href="https://github.com/karpathy/nanoGPT">download the training code</a> to build their own version using corpora like <a href="https://www.gutenberg.org/cache/epub/100/pg100.txt">Shakespeare</a> or <a href="https://www.gutenberg.org/cache/epub/2600/pg2600.txt">Tolstoy</a>. Training a target model of this scale takes under 15 minutes on a modern desktop NVIDIA GPU.</li>
+                <li><strong>Mobile Fallback:</strong> To prevent battery drain on mobile browsers, the application simulates inferences but uses pre-calculated data on mobiles.</li>
+                <li><strong>Asset Attribution:</strong> The cover asset for this technical project was <a href="https://www.freepik.com/free-vector/hand-drawn-flat-design-stack-books-illustration_24307396.htm">Designed by Freepik</a>.</li>
+            </ul>
+            </article>
+
+        </main>
+    </div>
+
+</body>
 </html>

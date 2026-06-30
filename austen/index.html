@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<meta http-equiv="X-UA-Compatible" content="ie=edge">
+		<title>Nonsense, Austen</title>
+		<audio id="chime" src="chime.mp3" preload="auto"></audio>
+		<link rel="stylesheet" href="index.css">
+		<link rel="preconnect" href="https://fonts.googleapis.com">
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+		<link href="https://fonts.googleapis.com/css2?family=Ms+Madi&display=block" rel="stylesheet">
+		<script src="https://cdn.jsdelivr.net/npm/onnxruntime-web/dist/ort.webgpu.min.js"></script>
+		<script src="generate.js"></script>
+	</head>
+	<body>
+		<p id="loading" class="hide">Jane is thinking...</p>
+		<div class="envlope-wrapper">
+				<div id="envelope" class="close loading">
+						<div class="front flap"></div>
+						<div class="front pocket"></div>
+						<div class="letter">
+								<div class="words line1"></div>
+								<div class="words line2"></div>
+								<div class="words line3"></div>
+								<div class="words line4"></div>
+						</div>
+						<div class="hearts">
+								<div class="heart a1"></div>
+								<div class="heart a2"></div>
+								<div class="heart a3"></div>
+						</div>
+				</div>
+		</div>
+		<div class="big-letter">
+			<div id="letter" class="big-letter-content">
+			</div>
+		</div>
+		<script>
+			const envelope = document.getElementById('envelope');
+			const bigLetter = document.getElementsByClassName('big-letter')[0];
+
+			function loadVoices() {
+				return new Promise(resolve => {
+					const voices = speechSynthesis.getVoices();
+					if (voices.length) {
+						resolve(voices);
+					} else {
+						speechSynthesis.onvoiceschanged = () => resolve(speechSynthesis.getVoices());
+					}
+				});
+			}
+
+			loadVoices().then(() => window.voicesReady = true);
+			
+			bigLetter.onmousedown = function () {
+				window.bigLetterClickStart = Date.now();
+			};
+
+			bigLetter.onclick = function () {
+				if (!window.voicesFinished && Date.now() < window.letterPageSwitched.when + 15000) return;
+				if (!window.letterPageSwitched.times && window.bigLetterClickStart && Date.now() - window.bigLetterClickStart > 900) return; /* long click - user might be copying text */
+				speechSynthesis.cancel();
+
+				if (window.letterPageSwitched.times) {
+					window.location.reload();
+					return;
+				}
+				window.letterPageSwitched = {
+					when: Date.now() - 7500,
+					times: 1
+				};
+
+				Array.from(document.getElementsByClassName('prose')).forEach(e => e.classList.add('hidden'));
+				setTimeout(() => {
+					const utter = new SpeechSynthesisUtterance(window.credits);
+					if (window.voice) utter.voice = window.voice;
+					speechSynthesis.speak(utter);
+					Array.from(document.getElementsByClassName('prose')).forEach(e => e.classList.add('removed'));
+					document.getElementById('letter').classList.add('credit');
+					Array.from(document.getElementsByClassName('majorCredit'))
+						.concat(Array.from(document.getElementsByClassName('minorCredit')))
+						.forEach(e => {
+							e.classList.remove('removed');
+							e.classList.remove('hidden');
+						});
+				}, 1000);
+			};
+
+			envelope.onclick = function () {
+				if (!window.voicesReady || !window.prose || window.envelopeOpened) return;
+
+				window.envelopeOpened = true;
+				window.letterPageSwitched = { when: Date.now(), times: 0 };
+				envelope.classList.add('open');
+				envelope.classList.remove('close');
+				bigLetter.classList.add('open');
+
+				const voices = speechSynthesis.getVoices();
+				console.log(voices.map(v => v.name));
+				window.voice = voices.find(v => v.name.includes('Microsoft Sonia')) ||
+					voices.find(v =>
+							v.lang.startsWith('en') &&
+							/female/i.test(v.name + v.voiceURI)
+						) || voices.find(v => v.lang.startsWith('en'));
+				
+				const utter = new SpeechSynthesisUtterance(window.prose);
+				if (window.voice) utter.voice = window.voice;
+			
+				const audio = document.getElementById('chime');
+				audio.currentTime = 0;
+				audio.play();
+				
+				setTimeout(() => {
+					speechSynthesis.speak(utter);
+					utter.onend = () => window.voicesFinished = true;
+				}, 4000);
+			};
+
+			prepare();
+		</script>
+	</body>
+</html>
